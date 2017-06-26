@@ -14,7 +14,6 @@ import math
 import numpy as np
 
 
-
 class NativeBayes(object):
     def __init__(self, integerIndexList, ifMix = True):
         """ Creates a new Naive Bayes Model for Data have both categorical variables and numeric variables. """
@@ -62,7 +61,7 @@ class NativeBayes(object):
     def calculateProbability2(self, x, prior, posterior, classValue):
         prior_prob = prior[classValue]
         posterior_prob = posterior[str(x) + str(classValue)]
-        feature_log_prob_ = prior_prob * np.log(posterior_prob)
+        feature_log_prob_ = prior_prob * posterior_prob
         return feature_log_prob_
 
     def calculateClassProbabilities(self, inputVector):
@@ -107,4 +106,4 @@ class NativeBayes(object):
         for i in range(len(Y_test)):
             if Y_test[i] == predictions[i]:
                 correct += 1
-        return (correct / float(len(Y_test)))
+        return (correct / len(Y_test))
