@@ -5,7 +5,6 @@
 # Parameters
 # -----------
 # specific column indexes of binary variables
-#
 ###########################################################################
 
 from __future__ import division
@@ -34,30 +33,27 @@ class NativeBayes(object):
         separated = {}
         for i in xrange(len(y)):
             vector = X[i]
-            if y[i] not in separated:
-                separated[y[i]] = []
-            separated[y[i]].append(list(vector))
-
+            if y[i][0] not in separated:
+                separated[y[i][0]] = []
+            separated[y[i][0]].append(list(vector))
 
         for classValue, instances in separated.iteritems():
             self.summaries[classValue] = self.summarize(instances)
 
-
-        distinctClassLabels = list(set(y))
+        distinctClassLabels = list(set([i[0] for i in y]))
         for i in range(len(distinctClassLabels)):
-            self.prior[distinctClassLabels[i]] = len([j for j in y if j == distinctClassLabels[i]]) / len(y)
-
-
+            self.prior[distinctClassLabels[i]] = len([j for j in y if j[0] == distinctClassLabels[i]]) / len(y)
         for j in self.integerIndexList:
             alpha = len(list(set([item[j] for item in X])))
             posterior_probability = {}
             terms = list(set([item[j] for item in X]))
             for m in terms:
                 for n in distinctClassLabels:
-                    numerator = len([X[l][j] for l in xrange(len(X)) if X[l][j] == m and y[l] == n]) + 1
+                    numerator = len([X[l][j] for l in xrange(len(X)) if X[l][j] == m and y[l][0] == n]) + 1
                     denominator = len([X[l][j] for l in xrange(len(X)) if X[l][j] == m]) + alpha
                     posterior_probability[str(m) + str(n)] = numerator / denominator
             self.posterior[j] = posterior_probability
+
 
     def calculateProbability1(self, x, mean, stdev):
         exponent = math.exp(-(math.pow(x - mean, 2) / (2 * math.pow(stdev, 2))))
@@ -71,15 +67,18 @@ class NativeBayes(object):
 
     def calculateClassProbabilities(self, inputVector):
         probabilities = {}
-        print self.summaries
         for classValue, classSummaries in self.summaries.iteritems():
             probabilities[classValue] = 1
+
+
             for i in range(len(classSummaries)):
                 mean, stdev = classSummaries[i]
-                x = inputVector[i]
+                x = list(inputVector)[i]
+
                 if i not in self.integerIndexList:
                     probabilities[classValue] *= self.calculateProbability1(x, mean, stdev)
                 else:
+
                     probabilities[classValue] *= self.calculateProbability2(x, self.prior, self.posterior[i], classValue)
         return probabilities
 
@@ -102,12 +101,10 @@ class NativeBayes(object):
         return predictions
 
 
-    def PredictionAccuracy(self, X, Y_test):
+    def accuracy_score(self, X, Y_test):
         predictions = self.predict(X)
         correct = 0
         for i in range(len(Y_test)):
             if Y_test[i] == predictions[i]:
                 correct += 1
-        return (correct / float(len(Y_test))) * 100.0
-
-
+        return (correct / float(len(Y_test)))
